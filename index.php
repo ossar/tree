@@ -75,40 +75,41 @@ class MyTree
 }
 
 $data = [
-     1 => ['id' =>  1, 'name' => 'a', 'pid' =>  0 ],
-     2 => ['id' =>  2, 'name' => 'b', 'pid' =>  1 ],
-     3 => ['id' =>  3, 'name' => 'c', 'pid' =>  2 ],
-     4 => ['id' =>  4, 'name' => 'd', 'pid' =>  1 ],
-     5 => ['id' =>  5, 'name' => 'e', 'pid' =>  3 ],
-     6 => ['id' =>  6, 'name' => 'f', 'pid' =>  5 ],
-     7 => ['id' =>  7, 'name' => 'g', 'pid' =>  2 ],
-     8 => ['id' =>  8, 'name' => 'h', 'pid' =>  2 ],
-     9 => ['id' =>  9, 'name' => 'i', 'pid' => 13 ],
-    10 => ['id' => 10, 'name' => 'j', 'pid' =>  8 ],
-    11 => ['id' => 11, 'name' => 'k', 'pid' =>  6 ],
-    12 => ['id' => 12, 'name' => 'l', 'pid' => 11 ],
-    13 => ['id' => 13, 'name' => 'm', 'pid' => 14 ],
+     1 => ['pid' =>  0 , 'comment' => 'a' ],
+     2 => ['pid' =>  1 , 'comment' => 'b' ],
+     3 => ['pid' =>  2 , 'comment' => 'c' ],
+     4 => ['pid' =>  1 , 'comment' => 'd' ],
+     5 => ['pid' =>  3 , 'comment' => 'e' ],
+     6 => ['pid' =>  5 , 'comment' => 'f' ],
+     7 => ['pid' =>  2 , 'comment' => 'g' ],
+     8 => ['pid' =>  2 , 'comment' => 'h' ],
+     9 => ['pid' => 13 , 'comment' => 'i' ],
+    10 => ['pid' =>  8 , 'comment' => 'j' ],
+    11 => ['pid' =>  6 , 'comment' => 'k' ],
+    12 => ['pid' => 11 , 'comment' => 'l' ],
+    13 => ['pid' => 14 , 'comment' => 'm' ],
 ];
 
 $pArr = [];
 foreach ($data as $key => $val) {
-    $pArr[$val['id']] = $val['pid'];
+    $pArr[$key] = $val['pid'];
 }
 
 header('Content-type: text/plain; charset=utf-8');
+
 
 $tr = new MyTree;
 $tree = $tr->makeTree($pArr);
 dispTree($tree, $data);
 
 $arr = [
-    'debian'    => ['name'=>'', 'pid'=>''],
-    'ubuntu'    => ['name'=>'', 'pid'=>'debian'],
-    'kubuntu'   => ['name'=>'', 'pid'=>'ubuntu'],
-    'slackware' => ['name'=>'', 'pid'=>''],
-    'redhat'    => ['name'=>'', 'pid'=>''],
-    'fedora'    => ['name'=>'', 'pid'=>'redhat'],
-    'centos'    => ['name'=>'', 'pid'=>'redhat'],
+    'debian'    => ['pid'=>''      ],
+    'ubuntu'    => ['pid'=>'debian'],
+    'kubuntu'   => ['pid'=>'ubuntu'],
+    'slackware' => ['pid'=>''      ],
+    'redhat'    => ['pid'=>''      ],
+    'fedora'    => ['pid'=>'redhat'],
+    'centos'    => ['pid'=>'redhat'],
 ];
 $pArr = [];
 foreach ($arr as $key => $val) {
@@ -117,25 +118,26 @@ foreach ($arr as $key => $val) {
 $tree = $tr->makeTree($pArr);
 echo "\n\n";
 echo "Linux\n";
-dispTree($tree, $arr, 0, '  ');
+dispTree($tree, $arr, '', '  |', '   ', '  +', '   ');
 
-function dispTree($tree, $data, $level=0, $offset='')
+
+function dispTree($tree, $data, $offset='', $prefNext=' |', $prefNone='  ', $prefFold=' +', $defaultOffset='  ', $connect='--')
 {
     $size = count($tree);
     $cnt = 0;
     foreach ($tree as $id => $subTree) {
-        printf("%s|\n%s+--[%s]\n"
+        printf("%s{$prefNext}\n%s{$prefFold}{$connect}[%s] %s\n"
             , $offset
             , $offset
             , $id
-            , $data[$id]['name']
+            , isset($data[$id]['comment']) ? $data[$id]['comment']: ''
         );
         $cnt++;
         if ($cnt == $size) {
-            $newOffset = $offset.'    ';
+            $newOffset = $offset.$prefNone.$defaultOffset;
         } else {
-            $newOffset = $offset.'|   ';
+            $newOffset = $offset.$prefNext.$defaultOffset;
         }
-        dispTree($subTree, $data, $level+1, $newOffset);
+        dispTree($subTree, $data, $newOffset, $prefNext, $prefNone, $prefFold, $defaultOffset, $connect);
     }
 }

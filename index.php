@@ -97,12 +97,27 @@ foreach ($data as $key => $val) {
 
 header('Content-type: text/plain; charset=utf-8');
 
-print_r($data);
 $tr = new MyTree;
 $tree = $tr->makeTree($pArr);
-print_r($tree);
-
 dispTree($tree, $data);
+
+$arr = [
+    'debian'    => ['name'=>'', 'pid'=>''],
+    'ubuntu'    => ['name'=>'', 'pid'=>'debian'],
+    'kubuntu'   => ['name'=>'', 'pid'=>'ubuntu'],
+    'slackware' => ['name'=>'', 'pid'=>''],
+    'redhat'    => ['name'=>'', 'pid'=>''],
+    'fedora'    => ['name'=>'', 'pid'=>'redhat'],
+    'centos'    => ['name'=>'', 'pid'=>'redhat'],
+];
+$pArr = [];
+foreach ($arr as $key => $val) {
+    $pArr[$key] = $val['pid'];
+}
+$tree = $tr->makeTree($pArr);
+echo "\n\n";
+echo "Linux\n";
+dispTree($tree, $arr, 0, '  ');
 
 function dispTree($tree, $data, $level=0, $offset='')
 {

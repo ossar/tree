@@ -1,4 +1,7 @@
 <?php
+namespace MyTree;
+
+use Exception;
 
 ini_set('display_errors', 'on');
 error_reporting(E_ALL);
@@ -72,6 +75,47 @@ class MyTree
         }
         return $path;
     }
+
+    public function dispTree($tree, $data, $option=[], $level=0, $offset='')
+    {
+        $option['pref_next'] = isset($option['pref_next']) ? $option['pref_next'] : ' |';
+        $option['pref_none'] = isset($option['pref_none']) ? $option['pref_none'] : '  ';
+        $option['pref_fold'] = isset($option['pref_fold']) ? $option['pref_fold'] : ' +';
+        $option['default'  ] = isset($option['default'  ]) ? $option['default'  ] : '  ';
+        $option['connect'  ] = isset($option['connect'  ]) ? $option['connect'  ] : '--';
+
+        $size = count($tree);
+        $cnt = 0;
+        foreach ($tree as $id => $subTree) {
+            if ($level == 0) {
+                printf("\n[%s] %s\n"
+                    , $id
+                    , isset($data[$id]['comment']) ? $data[$id]['comment']: ''
+                );
+            } else {
+                printf("%s%s\n%s%s%s[%s] %s\n"
+                    , $offset
+                    , $option['pref_next']
+                    , $offset
+                    , $option['pref_fold']
+                    , $option['connect']
+                    , $id
+                    , isset($data[$id]['comment']) ? $data[$id]['comment']: ''
+                );
+            }
+            $cnt++;
+            if ($level == 0) {
+                $newOffset = $offset;
+            } else {
+                if ($cnt == $size) {
+                    $newOffset = $offset.$option['pref_none'].$option['default'];
+                } else {
+                    $newOffset = $offset.$option['pref_next'].$option['default'];
+                }
+            }
+            $this->dispTree($subTree, $data, $option, $level+1, $newOffset);
+        }
+    }
 }
 
 $data = [
@@ -100,14 +144,16 @@ header('Content-type: text/plain; charset=utf-8');
 
 $tr = new MyTree;
 $tree = $tr->makeTree($pArr);
-dispTree($tree, $data);
+print_r($tree);
+$tr->dispTree($tree, $data);
 
 $arr = [
-    'debian'    => ['pid'=>''      ],
+    'linux'     => ['pid'=>''      ],
+    'debian'    => ['pid'=>'linux' ],
     'ubuntu'    => ['pid'=>'debian'],
     'kubuntu'   => ['pid'=>'ubuntu'],
-    'slackware' => ['pid'=>''      ],
-    'redhat'    => ['pid'=>''      ],
+    'slackware' => ['pid'=>'linux' ],
+    'redhat'    => ['pid'=>'linux' ],
     'fedora'    => ['pid'=>'redhat'],
     'centos'    => ['pid'=>'redhat'],
 ];
@@ -117,27 +163,14 @@ foreach ($arr as $key => $val) {
 }
 $tree = $tr->makeTree($pArr);
 echo "\n\n";
+
 echo "Linux\n";
-dispTree($tree, $arr, '', '  |', '   ', '  +', '   ');
+$option = [
+    'pref_next' => '  |',
+    'pref_none' => '   ',
+    'pref_fold' => '  +',
+    'default'   => '   ',
+    'connect'   => null,
+];
+$tr->dispTree($tree, $arr, $option);
 
-
-function dispTree($tree, $data, $offset='', $prefNext=' |', $prefNone='  ', $prefFold=' +', $defaultOffset='  ', $connect='--')
-{
-    $size = count($tree);
-    $cnt = 0;
-    foreach ($tree as $id => $subTree) {
-        printf("%s{$prefNext}\n%s{$prefFold}{$connect}[%s] %s\n"
-            , $offset
-            , $offset
-            , $id
-            , isset($data[$id]['comment']) ? $data[$id]['comment']: ''
-        );
-        $cnt++;
-        if ($cnt == $size) {
-            $newOffset = $offset.$prefNone.$defaultOffset;
-        } else {
-            $newOffset = $offset.$prefNext.$defaultOffset;
-        }
-        dispTree($subTree, $data, $newOffset, $prefNext, $prefNone, $prefFold, $defaultOffset, $connect);
-    }
-}
